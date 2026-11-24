@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { fetchProjects, resolveImageUrl } from '../services/api';
 
 // Tech Badge Icons
 function TechBadgeIcon({ name }) {
@@ -102,7 +103,7 @@ function GitHubIcon() {
 const projectData = {
   jstore: {
     number: '#01',
-    category: 'WEB APP',
+    category: 'Website',
     headerCategory: 'GAME STORE',
     headerType: 'WEB APPLICATION',
     urlMock: 'jstore-gaming.app',
@@ -122,7 +123,7 @@ const projectData = {
   },
   tuberculosis: {
     number: '#02',
-    category: 'HEALTHCARE AI',
+    category: 'Machine Learning',
     headerCategory: 'HEALTHCARE',
     headerType: 'EXPERT SYSTEM',
     urlMock: 'tb-expertsystem.health.id',
@@ -142,7 +143,7 @@ const projectData = {
   },
   portfolio: {
     number: '#03',
-    category: 'FRONTEND',
+    category: 'Website',
     headerCategory: 'PORTFOLIO',
     headerType: 'PERSONAL WEBSITE',
     urlMock: 'arisandi-portfolio.netlify.app',
@@ -163,7 +164,7 @@ const projectData = {
   },
   backendApi: {
     number: '#04',
-    category: 'REST API',
+    category: 'Backend',
     headerCategory: 'BACKEND API',
     headerType: 'REST API & ADMIN PANEL',
     urlMock: 'api.arisandi.workers.dev',
@@ -187,7 +188,7 @@ const projectData = {
 const projects = [
   {
     id: 'jstore',
-    category: 'WEB APP',
+    category: 'Website',
     title: 'J-Store',
     subtitle: 'Game Currency Store Platform',
     desc: 'Platform toko mata uang game populer dengan katalog responsif, kalkulasi harga instan, dan alur checkout aman untuk mobile & desktop.',
@@ -197,7 +198,7 @@ const projects = [
   },
   {
     id: 'tuberculosis',
-    category: 'HEALTHCARE AI',
+    category: 'Machine Learning',
     title: 'TB Expert System',
     subtitle: 'AI-Powered Disease Screening',
     desc: 'Aplikasi web sistem pakar skrining gejala Tuberkulosis menggunakan metode inferensi Dempster-Shafer dengan kalkulasi probabilitas akurat.',
@@ -207,7 +208,7 @@ const projects = [
   },
   {
     id: 'portfolio',
-    category: 'FRONTEND',
+    category: 'Website',
     title: 'Personal Portfolio',
     subtitle: 'Modern Interactive Showcase',
     desc: 'Website portofolio interaktif dengan navigasi horizontal slider, tema glassmorphism modern, modal studi kasus, dan filter sertifikat dinamis.',
@@ -217,7 +218,7 @@ const projects = [
   },
   {
     id: 'backendApi',
-    category: 'REST API',
+    category: 'Backend',
     title: 'Backend API & Admin',
     subtitle: 'Portfolio Management System',
     desc: 'REST API backend terstruktur dilengkapi dashboard admin untuk pengelolaan CRUD dinamis pada data proyek, portofolio, dan resume.',
@@ -227,13 +228,77 @@ const projects = [
   },
 ];
 
+const projectCategories = [
+  { value: 'all', label: 'Semua' },
+  { value: 'Website', label: 'Website' },
+  { value: 'Mobile App', label: 'Mobile App' },
+  { value: 'Backend', label: 'Backend' },
+  { value: 'Machine Learning', label: 'Machine Learning' },
+  { value: 'UI/UX', label: 'UI/UX' },
+  { value: 'Other', label: 'Other' },
+];
+
 export default function ProjectsSection({ onNavigate }) {
+  const [projectList, setProjectList] = useState(projects);
+  const [projectDetails, setProjectDetails] = useState(projectData);
+  const [activeCategory, setActiveCategory] = useState('all');
   const [modal, setModal] = useState(null);
   const [imageModal, setImageModal] = useState(false);
   const [alertModal, setAlertModal] = useState(false);
 
+  // Fetch live projects from Cloudflare Worker REST API
+  useEffect(() => {
+    let active = true;
+    fetchProjects().then((items) => {
+      if (!active || !items || !Array.isArray(items) || items.length === 0) return;
+
+      const detailsMap = {};
+      const mappedList = items.map((p, idx) => {
+        const resolvedImg = resolveImageUrl(p.image);
+        const techArr = Array.isArray(p.tech)
+          ? p.tech
+          : p.tech
+          ? String(p.tech).split(',').map((s) => s.trim())
+          : [];
+
+        const cardItem = {
+          id: p.id || `proj-${idx + 1}`,
+          number: p.number || `#${String(idx + 1).padStart(2, '0')}`,
+          category: p.category || 'Website',
+          headerCategory: p.headerCategory || (p.category || 'PROJECT').toUpperCase(),
+          headerType: p.headerType || 'WEB APPLICATION',
+          urlMock: p.urlMock || '',
+          title: p.title || 'Untitled Project',
+          subtitle: p.subtitle || '',
+          desc: p.description || p.desc || '',
+          tech: techArr,
+          image: resolvedImg,
+          github: p.github || '#',
+          isPrivate: p.isPrivate,
+        };
+
+        detailsMap[cardItem.id] = {
+          ...p,
+          ...cardItem,
+          description: p.description || cardItem.desc,
+          features: Array.isArray(p.features) ? p.features : [],
+        };
+
+        return cardItem;
+      });
+
+      setProjectList(mappedList);
+      setProjectDetails((prev) => ({ ...prev, ...detailsMap }));
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   function openModal(id) {
-    setModal(projectData[id]);
+    const item = projectDetails[id] || projectData[id];
+    if (item) setModal(item);
   }
 
   function closeModal() {
@@ -280,6 +345,13 @@ export default function ProjectsSection({ onNavigate }) {
     }, 250);
   }
 
+  const filteredProjects =
+    activeCategory === 'all'
+      ? projectList
+      : projectList.filter(
+          (p) => (p.category || '').toLowerCase() === activeCategory.toLowerCase()
+        );
+
   return (
     <section
       className="content-section section horizontal-panel"
@@ -295,28 +367,105 @@ export default function ProjectsSection({ onNavigate }) {
         Kumpulan proyek terpilih yang mencakup web application, sistem pakar AI, frontend interaktif, hingga arsitektur backend REST API.
       </p>
 
+      {/* Category Filter Tabs */}
+      <div className="project-filter-buttons" role="tablist" aria-label="Kategori Project">
+        {projectCategories.map((cat) => {
+          const count =
+            cat.value === 'all'
+              ? projectList.length
+              : projectList.filter(
+                  (p) => (p.category || '').toLowerCase() === cat.value.toLowerCase()
+                ).length;
+          const isActive = activeCategory.toLowerCase() === cat.value.toLowerCase();
+          return (
+            <button
+              key={cat.value}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={`project-filter-btn${isActive ? ' is-active' : ''}`}
+              onClick={() => setActiveCategory(cat.value)}
+            >
+              <span>{cat.label}</span>
+              <span className="project-filter-count">{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Modern Redesigned Project Grid */}
-      <div className="project-grid">
-        {projects.map((p, i) => (
-          <article
-            key={p.id}
-            className="project-card"
-            onClick={() => openModal(p.id)}
-            style={{ animationDelay: `${(i + 1) * 0.12}s` }}
-          >
-            {/* Visual Media Showcase */}
-            <div className="project-thumb-wrapper">
-              <img
-                src={p.image}
-                alt={p.title}
-                className="project-thumb-img"
-                loading="lazy"
-              />
-              <div className="project-thumb-overlay">
-                <span className="project-quick-view">
+      {filteredProjects.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '48px 16px', color: '#9ca3af' }}>
+          <p>Belum ada project pada kategori <strong>{activeCategory}</strong>.</p>
+        </div>
+      ) : (
+        <div className="project-grid">
+          {filteredProjects.map((p, i) => (
+            <article
+              key={p.id}
+              className="project-card"
+              onClick={() => openModal(p.id)}
+              style={{ animationDelay: `${(i + 1) * 0.12}s` }}
+            >
+              {/* Visual Media Showcase */}
+              <div className="project-thumb-wrapper">
+                <img
+                  src={p.image}
+                  alt={p.title}
+                  className="project-thumb-img"
+                  loading="lazy"
+                />
+                <div className="project-thumb-overlay">
+                  <span className="project-quick-view">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    Lihat Detail Proyek
+                  </span>
+                </div>
+                <div className="project-badge-bar">
+                  <span className="project-number-tag">#{String(i + 1).padStart(2, '0')}</span>
+                  <span className="project-category-tag">{p.category}</span>
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div className="project-card-body">
+                <div className="project-title-group">
+                  <h3 className="project-card-title">{p.title}</h3>
+                  <span className="project-card-subtitle">{p.subtitle}</span>
+                </div>
+                <p className="project-card-desc">{p.desc}</p>
+
+                {/* Tech Stack Pills with Mini Logos */}
+                <div className="project-card-tech">
+                  {p.tech.map((t) => (
+                    <span key={t} className="project-tech-pill">
+                      <TechBadgeIcon name={t} />
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Card Footer Action */}
+              <div className="project-card-footer">
+                <div className="project-explore-link">
+                  <span>Pelajari Proyek</span>
                   <svg
-                    width="16"
-                    height="16"
+                    className="project-arrow-icon"
+                    width="18"
+                    height="18"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -324,79 +473,34 @@ export default function ProjectsSection({ onNavigate }) {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                    <circle cx="12" cy="12" r="3" />
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
                   </svg>
-                  Lihat Detail Proyek
-                </span>
-              </div>
-              <div className="project-badge-bar">
-                <span className="project-number-tag">#{String(i + 1).padStart(2, '0')}</span>
-                <span className="project-category-tag">{p.category}</span>
-              </div>
-            </div>
+                </div>
 
-            {/* Card Body */}
-            <div className="project-card-body">
-              <div className="project-title-group">
-                <h3 className="project-card-title">{p.title}</h3>
-                <span className="project-card-subtitle">{p.subtitle}</span>
+                {p.github && (
+                  <button
+                    type="button"
+                    className="project-github-btn"
+                    aria-label="GitHub Repository"
+                    title={p.github === '#' ? 'Source code private' : 'Buka GitHub'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (p.github === '#') {
+                        setAlertModal(true);
+                      } else {
+                        window.open(p.github, '_blank', 'noopener,noreferrer');
+                      }
+                    }}
+                  >
+                    <GitHubIcon />
+                  </button>
+                )}
               </div>
-              <p className="project-card-desc">{p.desc}</p>
-
-              {/* Tech Stack Pills with Mini Logos */}
-              <div className="project-card-tech">
-                {p.tech.map((t) => (
-                  <span key={t} className="project-tech-pill">
-                    <TechBadgeIcon name={t} />
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Card Footer Action */}
-            <div className="project-card-footer">
-              <div className="project-explore-link">
-                <span>Pelajari Proyek</span>
-                <svg
-                  className="project-arrow-icon"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 12h14" />
-                  <path d="m12 5 7 7-7 7" />
-                </svg>
-              </div>
-
-              {p.github && (
-                <button
-                  type="button"
-                  className="project-github-btn"
-                  aria-label="GitHub Repository"
-                  title={p.github === '#' ? 'Source code private' : 'Buka GitHub'}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (p.github === '#') {
-                      setAlertModal(true);
-                    } else {
-                      window.open(p.github, '_blank', 'noopener,noreferrer');
-                    }
-                  }}
-                >
-                  <GitHubIcon />
-                </button>
-              )}
-            </div>
-          </article>
-        ))}
-      </div>
+            </article>
+          ))}
+        </div>
+      )}
 
       {/* ================================================================= */}
       {/* MODALS RENDERED IN PORTAL DIRECTLY ON DOCUMENT.BODY               */}

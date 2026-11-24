@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { fetchResume } from '../services/api';
 
 // Crisp Category Icons
 const categoryIcons = {
@@ -377,10 +378,131 @@ function TimelineItem({ date, title, org, desc, details, certHref, gpa, icon, ta
   );
 }
 
+const defaultExperiences = [
+  {
+    id: 'ruangguru-bootcamp',
+    date: 'Feb 2022 - Jul 2022',
+    title: 'Front-End Engineering Bootcamp',
+    org: 'Ruangguru',
+    desc: 'Program Magang & Studi Independen Bersertifikat (MSIB) Front-End Engineering di PT Ruang Raya Indonesia.',
+    tags: ['React', 'Next.js', 'TypeScript', 'REST API', 'Cloud Deployment'],
+    details: 'Kerja kolaboratif dengan Git & GitHub Version Control, Pemrograman modern Front-End JavaScript dan CSS, Component Programming dengan React, SSR Framework dengan Next.js, API Integration & Authentication, Identity Management, Performance Optimization, dan Dasar-dasar Project Management tim Scrum.',
+    certHref: 'https://drive.google.com/file/d/1_VLbu0URknhletqkEBRfFKFjgb0I5SWH/view?usp=sharing',
+    iconType: 'code',
+  },
+  {
+    id: 'dicoding-multiplatform',
+    date: 'Agu 2021 - Jan 2022',
+    title: 'Pengembang Android & Multi-Platform',
+    org: 'Dicoding',
+    desc: 'Program Magang & Studi Independen Bersertifikat (MSIB) Pengembang Aplikasi Android & Multi-Platform di PT Presentologics.',
+    tags: ['Android', 'Kotlin', 'Flutter', 'Dart', 'SOLID Principles'],
+    details: 'Menyelesaikan kurikulum terakreditasi: Programming Logic 101, Git with GitHub, Prinsip Pemrograman SOLID, Pemrograman Android Native dengan Kotlin, Android Architecture Components, Pemrograman Multi-Platform dengan Dart & Flutter, serta implementasi fundamental state management.',
+    certHref: 'https://drive.google.com/file/d/1_VLbu0URknhletqkEBRfFKFjgb0I5SWH/view?usp=sharing',
+    iconType: 'mobile',
+  },
+];
+
+const defaultEducations = [
+  {
+    id: 'unej-s1-informatika',
+    date: '2019 - 2026',
+    title: 'Universitas Jember',
+    org: 'S1 Informatika',
+    desc: 'Fakultas Ilmu Komputer · Jurusan Informatika',
+    tags: ['Software Engineering', 'Algorithms', 'Expert Systems', 'Web Tech'],
+    details: 'Menempuh pendidikan Sarjana Informatika dengan konsentrasi Software Engineering dan Web Technologies. Menguasai fondasi algoritma, struktur data, kecerdasan buatan, sistem pakar, serta metodologi pengembangan perangkat lunak modern. Berperan aktif dalam kegiatan kemahasiswaan dan riset sistem skrining kesehatan.',
+    gpa: 'IPK: 3.66',
+    iconType: 'academic',
+  },
+];
+
+function getTimelineIcon(iconType) {
+  if (iconType === 'mobile') {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+        <line x1="12" y1="18" x2="12.01" y2="18" />
+      </svg>
+    );
+  }
+  if (iconType === 'academic') {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+        <path d="M6 12v5c3 3 9 3 12 0v-5" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="16 18 22 12 16 6" />
+      <polyline points="8 6 2 12 8 18" />
+    </svg>
+  );
+}
+
 export default function ResumeSection() {
+  const [certList, setCertList] = useState(certifications);
+  const [expList, setExpList] = useState(defaultExperiences);
+  const [eduList, setEduList] = useState(defaultEducations);
   const [activeFilter, setActiveFilter] = useState('all');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Fetch live resume (experience, education, certifications) from Cloudflare Worker API
+  useEffect(() => {
+    let active = true;
+    fetchResume().then((data) => {
+      if (!active || !data) return;
+
+      if (Array.isArray(data.certifications) && data.certifications.length > 0) {
+        setCertList(data.certifications);
+      }
+      if (Array.isArray(data.experience) && data.experience.length > 0) {
+        setExpList(
+          data.experience.map((e) => ({
+            id: e.id,
+            date: e.date,
+            title: e.title,
+            org: e.organization || e.org,
+            desc: e.description || e.desc,
+            tags: Array.isArray(e.tags)
+              ? e.tags
+              : e.tags
+              ? String(e.tags).split(',').map((s) => s.trim())
+              : [],
+            details: e.details,
+            certHref: e.certHref,
+            iconType: e.iconType || 'code',
+          }))
+        );
+      }
+      if (Array.isArray(data.education) && data.education.length > 0) {
+        setEduList(
+          data.education.map((ed) => ({
+            id: ed.id,
+            date: ed.date,
+            title: ed.title,
+            org: ed.major || ed.institution || ed.org,
+            desc: ed.description || ed.desc,
+            tags: Array.isArray(ed.tags)
+              ? ed.tags
+              : ed.tags
+              ? String(ed.tags).split(',').map((s) => s.trim())
+              : [],
+            details: ed.details,
+            gpa: ed.gpa,
+            iconType: ed.iconType || 'academic',
+          }))
+        );
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -395,8 +517,8 @@ export default function ResumeSection() {
 
   const filtered =
     activeFilter === 'all'
-      ? certifications
-      : certifications.filter((c) => c.category === activeFilter);
+      ? certList
+      : certList.filter((c) => c.category === activeFilter);
 
   const currentFilterLabel =
     filterCategories.find((f) => f.value === activeFilter)?.label || 'Semua';
@@ -434,36 +556,19 @@ export default function ResumeSection() {
           </div>
 
           <div className="timeline">
-            <TimelineItem
-              date="Feb 2022 - Jul 2022"
-              title="Front-End Engineering Bootcamp"
-              org="Ruangguru"
-              desc="Program Magang & Studi Independen Bersertifikat (MSIB) Front-End Engineering di PT Ruang Raya Indonesia."
-              tags={['React', 'Next.js', 'TypeScript', 'REST API', 'Cloud Deployment']}
-              details="Kerja kolaboratif dengan Git & GitHub Version Control, Pemrograman modern Front-End JavaScript dan CSS, Component Programming dengan React, SSR Framework dengan Next.js, API Integration & Authentication, Identity Management, Performance Optimization, dan Dasar-dasar Project Management tim Scrum."
-              certHref="https://drive.google.com/file/d/1_VLbu0URknhletqkEBRfFKFjgb0I5SWH/view?usp=sharing"
-              icon={
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="16 18 22 12 16 6" />
-                  <polyline points="8 6 2 12 8 18" />
-                </svg>
-              }
-            />
-            <TimelineItem
-              date="Agu 2021 - Jan 2022"
-              title="Pengembang Android & Multi-Platform"
-              org="Dicoding"
-              desc="Program Magang & Studi Independen Bersertifikat (MSIB) Pengembang Aplikasi Android & Multi-Platform di PT Presentologics."
-              tags={['Android', 'Kotlin', 'Flutter', 'Dart', 'SOLID Principles']}
-              details="Menyelesaikan kurikulum terakreditasi: Programming Logic 101, Git with GitHub, Prinsip Pemrograman SOLID, Pemrograman Android Native dengan Kotlin, Android Architecture Components, Pemrograman Multi-Platform dengan Dart & Flutter, serta implementasi fundamental state management."
-              certHref="https://drive.google.com/file/d/1_VLbu0URknhletqkEBRfFKFjgb0I5SWH/view?usp=sharing"
-              icon={
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                  <line x1="12" y1="18" x2="12.01" y2="18" />
-                </svg>
-              }
-            />
+            {expList.map((item) => (
+              <TimelineItem
+                key={item.id || item.title}
+                date={item.date}
+                title={item.title}
+                org={item.org}
+                desc={item.desc}
+                tags={item.tags}
+                details={item.details}
+                certHref={item.certHref}
+                icon={getTimelineIcon(item.iconType || 'code')}
+              />
+            ))}
           </div>
         </div>
 
@@ -480,21 +585,19 @@ export default function ResumeSection() {
           </div>
 
           <div className="timeline">
-            <TimelineItem
-              date="2019 - 2026"
-              title="Universitas Jember"
-              org="S1 Informatika"
-              desc="Fakultas Ilmu Komputer · Jurusan Informatika"
-              tags={['Software Engineering', 'Algorithms', 'Expert Systems', 'Web Tech']}
-              details="Menempuh pendidikan Sarjana Informatika dengan konsentrasi Software Engineering dan Web Technologies. Menguasai fondasi algoritma, struktur data, kecerdasan buatan, sistem pakar, serta metodologi pengembangan perangkat lunak modern. Berperan aktif dalam kegiatan kemahasiswaan dan riset sistem skrining kesehatan."
-              gpa="IPK: 3.66"
-              icon={
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-                  <path d="M6 12v5c3 3 9 3 12 0v-5" />
-                </svg>
-              }
-            />
+            {eduList.map((item) => (
+              <TimelineItem
+                key={item.id || item.title}
+                date={item.date}
+                title={item.title}
+                org={item.org}
+                desc={item.desc}
+                tags={item.tags}
+                details={item.details}
+                gpa={item.gpa}
+                icon={getTimelineIcon(item.iconType || 'academic')}
+              />
+            ))}
           </div>
         </div>
       </div>
@@ -505,7 +608,7 @@ export default function ResumeSection() {
           <h3 className="resume-section-title certifications-title">
             Certifications &amp; Credentials
           </h3>
-          <span className="cert-count-pill">{certifications.length} Sertifikat</span>
+          <span className="cert-count-pill">{certList.length} Sertifikat</span>
         </div>
       </div>
 
@@ -514,8 +617,8 @@ export default function ResumeSection() {
         {filterCategories.map((f) => {
           const count =
             f.value === 'all'
-              ? certifications.length
-              : certifications.filter((c) => c.category === f.value).length;
+              ? certList.length
+              : certList.filter((c) => c.category === f.value).length;
           return (
             <button
               key={f.value}
@@ -586,21 +689,23 @@ export default function ResumeSection() {
           const categoryObj = filterCategories.find((f) => f.value === cert.category);
           return (
             <div
-              key={i}
+              key={cert.id || i}
               className="cert-item"
               style={{ animationDelay: `${Math.min(i * 0.05, 0.4)}s` }}
             >
               <div className="cert-item-header">
                 <span className="category-tag">
                   {categoryObj?.icon}
-                  <span>{categoryObj?.label}</span>
+                  <span>{categoryObj?.label || cert.category}</span>
                 </span>
-                <span className="cert-verified-badge" title="Verified Credential">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  Terverifikasi
-                </span>
+                {cert.isVerified !== false && (
+                  <span className="cert-verified-badge" title="Verified Credential">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Terverifikasi
+                  </span>
+                )}
               </div>
 
               <div className="cert-item-body">
