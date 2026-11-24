@@ -154,13 +154,19 @@ export default function HeroSection({ onNavigate }) {
         <span className="float-square square-one" />
         <span className="float-square square-two" />
         <span className="float-square square-three" />
-        <img
-          className="profile-photo"
-          src="/img/mocharisandij.png"
-          alt="Moch Arisandi Jayanto, Informatics graduate and aspiring web developer"
-          fetchPriority="high"
-          decoding="async"
-        />
+        <picture>
+          <source media="(max-width: 600px)" srcSet="/img/mocharisandij-mobile.webp" type="image/webp" />
+          <source srcSet="/img/mocharisandij.webp" type="image/webp" />
+          <img
+            className="profile-photo"
+            src="/img/mocharisandij.webp"
+            alt="Moch Arisandi Jayanto, Informatics graduate and aspiring web developer"
+            fetchPriority="high"
+            decoding="async"
+            width="1085"
+            height="1450"
+          />
+        </picture>
       </div>
 
       <SocialLinks className="social-links-mobile" />

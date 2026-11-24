@@ -83,26 +83,43 @@ export default function App() {
     [updateActiveNav]
   );
 
-  // Bubble cursor effect
+  // Bubble cursor effect (desktop mouse pointer only, deferred to avoid blocking FCP/LCP)
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/cursor-effects@latest/dist/browser.js';
-    script.onload = () => {
-      if (
-        window.cursoreffects &&
-        !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      ) {
-        new window.cursoreffects.bubbleCursor({
-          fillColor: '#ff8c00',
-          strokeColor: '#fff0c2',
-        });
-        document.querySelector('canvas')?.classList.add('bubble-cursor-glow');
-      }
+    if (typeof window === 'undefined') return;
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let scriptEl = null;
+
+    const loadCursor = () => {
+      scriptEl = document.createElement('script');
+      scriptEl.src = 'https://unpkg.com/cursor-effects@latest/dist/browser.js';
+      scriptEl.async = true;
+      scriptEl.onload = () => {
+        if (window.cursoreffects) {
+          new window.cursoreffects.bubbleCursor({
+            fillColor: '#ff8c00',
+            strokeColor: '#fff0c2',
+          });
+          document.querySelector('canvas')?.classList.add('bubble-cursor-glow');
+        }
+      };
+      document.body.appendChild(scriptEl);
     };
-    document.body.appendChild(script);
-    return () => {
-      if (script.parentNode) script.parentNode.removeChild(script);
-    };
+
+    if ('requestIdleCallback' in window) {
+      const idleHandle = window.requestIdleCallback(loadCursor, { timeout: 2000 });
+      return () => {
+        window.cancelIdleCallback(idleHandle);
+        if (scriptEl?.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+      };
+    } else {
+      const timer = setTimeout(loadCursor, 1500);
+      return () => {
+        clearTimeout(timer);
+        if (scriptEl?.parentNode) scriptEl.parentNode.removeChild(scriptEl);
+      };
+    }
   }, []);
 
   // Wheel and touch events for smooth horizontal sliding

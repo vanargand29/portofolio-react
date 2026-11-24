@@ -118,7 +118,7 @@ const projectData = {
       'Struktur kode modular berbasis standar HTML5, CSS3, dan ES6+',
     ],
     tech: ['HTML', 'CSS', 'JavaScript'],
-    image: '/img/jstore(tampilan).png',
+    image: '/img/jstore(tampilan).webp',
     github: '#',
   },
   tuberculosis: {
@@ -159,7 +159,7 @@ const projectData = {
       'Formulir kontak terintegrasi mailto siap kirim',
     ],
     tech: ['React', 'Responsive UI', 'HTML/CSS/JS'],
-    image: '/img/porto(tampilan).png',
+    image: '/img/porto(tampilan).webp',
     github: 'https://github.com/vanargand29/Portofolio',
   },
   backendApi: {
@@ -180,7 +180,7 @@ const projectData = {
       'CORS middleware terkonfigurasi untuk komunikasi domain aman',
     ],
     tech: ['Node.js', 'Express', 'Cloudflare Workers'],
-    image: '/img/adminAPI.png',
+    image: '/img/adminAPI.webp',
     github: '#',
   },
 };
@@ -193,7 +193,7 @@ const projects = [
     subtitle: 'Game Currency Store Platform',
     desc: 'Platform toko mata uang game populer dengan katalog responsif, kalkulasi harga instan, dan alur checkout aman untuk mobile & desktop.',
     tech: ['HTML', 'CSS', 'JavaScript'],
-    image: '/img/jstore(tampilan).png',
+    image: '/img/jstore(tampilan).webp',
     github: '#',
   },
   {
@@ -213,7 +213,7 @@ const projects = [
     subtitle: 'Modern Interactive Showcase',
     desc: 'Website portofolio interaktif dengan navigasi horizontal slider, tema glassmorphism modern, modal studi kasus, dan filter sertifikat dinamis.',
     tech: ['React', 'Responsive UI', 'HTML/CSS/JS'],
-    image: '/img/porto(tampilan).png',
+    image: '/img/porto(tampilan).webp',
     github: 'https://github.com/vanargand29/Portofolio',
   },
   {
@@ -223,7 +223,7 @@ const projects = [
     subtitle: 'Portfolio Management System',
     desc: 'REST API backend terstruktur dilengkapi dashboard admin untuk pengelolaan CRUD dinamis pada data proyek, portofolio, dan resume.',
     tech: ['Node.js', 'Express', 'Cloudflare Workers'],
-    image: '/img/adminAPI.png',
+    image: '/img/adminAPI.webp',
     github: '#',
   },
 ];
@@ -414,6 +414,7 @@ export default function ProjectsSection({ onNavigate }) {
                   alt={p.title}
                   className="project-thumb-img"
                   loading="lazy"
+                  decoding="async"
                 />
                 <div className="project-thumb-overlay">
                   <span className="project-quick-view">
@@ -597,7 +598,7 @@ export default function ProjectsSection({ onNavigate }) {
                     </svg>
                     <span>Perbesar Tampilan Penuh</span>
                   </div>
-                  <img src={modal.image} alt={modal.title} />
+                  <img src={modal.image} alt={modal.title} loading="lazy" decoding="async" />
                 </div>
               </div>
 
@@ -747,6 +748,8 @@ export default function ProjectsSection({ onNavigate }) {
               id="fullSizeImage"
               src={modal.image}
               alt="Full size project screenshot"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </div>
