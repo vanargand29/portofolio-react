@@ -155,7 +155,7 @@ export default function HeroSection({ onNavigate }) {
         <span className="float-square square-two" />
         <span className="float-square square-three" />
         <picture>
-          <source media="(max-width: 600px)" srcSet="/img/mocharisandij-mobile.webp" type="image/webp" />
+          <source media="(max-width: 768px)" srcSet="/img/mocharisandij-mobile.webp" type="image/webp" />
           <source srcSet="/img/mocharisandij.webp" type="image/webp" />
           <img
             className="profile-photo"

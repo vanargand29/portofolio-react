@@ -410,7 +410,7 @@ export default function ProjectsSection({ onNavigate }) {
               {/* Visual Media Showcase */}
               <div className="project-thumb-wrapper">
                 <img
-                  src={p.image}
+                  src={resolveImageUrl(p.image)}
                   alt={p.title}
                   className="project-thumb-img"
                   loading="lazy"
@@ -598,7 +598,7 @@ export default function ProjectsSection({ onNavigate }) {
                     </svg>
                     <span>Perbesar Tampilan Penuh</span>
                   </div>
-                  <img src={modal.image} alt={modal.title} loading="lazy" decoding="async" />
+                  <img src={resolveImageUrl(modal.image)} alt={modal.title} loading="lazy" decoding="async" />
                 </div>
               </div>
 
@@ -746,7 +746,7 @@ export default function ProjectsSection({ onNavigate }) {
             </button>
             <img
               id="fullSizeImage"
-              src={modal.image}
+              src={resolveImageUrl(modal.image)}
               alt="Full size project screenshot"
               loading="lazy"
               decoding="async"

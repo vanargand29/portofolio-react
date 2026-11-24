@@ -9,19 +9,26 @@ export const API_BASE_URL =
 /**
  * Resolves image paths:
  * - If full URL (http:// or https://), returns directly
- * - If backend KV upload path (/api/images/... or /img/...), prepends API_BASE_URL if needed
- * - If local asset (/img/...), returns as-is
+ * - If backend KV upload path (/api/images/...), prepends API_BASE_URL if needed
+ * - If local asset (/img/...), maps legacy .png to modern .webp when available
  */
 export function resolveImageUrl(url) {
   if (!url) return '';
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
+
+  let resolved = String(url).trim();
+
+  // Prefer modern WebP format for local portfolio images
+  if (resolved.startsWith('/img/') && resolved.endsWith('.png')) {
+    resolved = resolved.replace(/\.png$/i, '.webp');
   }
-  if (url.startsWith('/api/images/')) {
-    return `${API_BASE_URL}${url}`;
+
+  if (resolved.startsWith('http://') || resolved.startsWith('https://')) {
+    return resolved;
   }
-  // If user uploaded an image through admin API that got saved with /img/ prefix
-  return url;
+  if (resolved.startsWith('/api/images/')) {
+    return `${API_BASE_URL}${resolved}`;
+  }
+  return resolved;
 }
 
 /**

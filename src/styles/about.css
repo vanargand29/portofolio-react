@@ -330,6 +330,16 @@
 }
 
 @media (max-width: 768px) {
+	.content-section#about {
+		animation: none;
+		background-size: 100% 100%;
+	}
+
+	.about-shine {
+		animation: none;
+		opacity: 0.15;
+	}
+
 	.competencies-grid {
 		grid-template-columns: minmax(0, 1fr);
 		gap: 14px;

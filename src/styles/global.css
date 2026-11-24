@@ -1118,6 +1118,29 @@ h3 {
 }
 
 @media (max-width: 768px) {
+	body {
+		animation: none;
+		background-size: 40px 40px, 40px 40px, 100% 100%;
+	}
+
+	.logo-badge {
+		animation: none;
+		box-shadow: 0 0 10px rgba(255, 45, 54, 0.4);
+	}
+
+	.logo-badge::after {
+		animation: none;
+	}
+
+	.logo-role.is-active {
+		animation: none;
+	}
+
+	h1 span,
+	.logo-name-shine {
+		animation: none;
+	}
+
 	html {
 		scroll-padding-top: 72px;
 	}
@@ -1151,81 +1174,116 @@ h3 {
 	}
 
 	.hero {
-		grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-		align-content: start;
-		align-content: safe center;
-		column-gap: clamp(24px, 3vw, 32px);
-		row-gap: 14px;
-		padding: 32px var(--page-gutter) 10px;
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		grid-template-columns: none;
+		gap: 0;
+		padding: 68px var(--page-gutter) 24px;
+		min-height: 100%;
 	}
 
 	.hero-copy {
-		max-width: none;
-		min-width: 0;
+		display: contents;
+	}
+
+	.eyebrow {
+		order: 1;
+		align-self: flex-start;
+		margin-bottom: 12px;
+		padding: 6px 12px;
+		font-size: 11px;
 	}
 
 	h1 {
-		font-size: clamp(28px, 4.4vw, 34px);
+		order: 2;
+		font-size: clamp(26px, 6vw, 34px);
+		line-height: 1.15;
+		margin-bottom: 12px;
 		letter-spacing: -1.2px;
 	}
 
+	.hero-art {
+		order: 3;
+		width: min(100%, 280px);
+		height: clamp(240px, 62vw, 300px);
+		min-height: 0;
+		align-self: center;
+		justify-self: center;
+		margin: 8px auto 14px auto;
+	}
+
+	.profile-photo {
+		position: absolute;
+		bottom: 0;
+		left: 6%;
+		width: 88%;
+		height: 96%;
+		object-fit: contain;
+		object-position: bottom center;
+	}
+
+	.role-marquee {
+		order: 4;
+		margin: 4px 0 16px 0;
+		padding-block: 8px;
+		max-width: 100%;
+		border-radius: 8px;
+	}
+
 	.hero-description {
+		order: 5;
 		font-size: 14px;
-		line-height: 1.5;
+		line-height: 1.6;
+		margin-bottom: 10px;
+	}
+
+	.load-more-btn {
+		order: 6;
+		align-self: flex-start;
 		margin-bottom: 16px;
 	}
 
 	.hero-actions {
+		order: 7;
+		display: flex;
 		flex-direction: row;
 		flex-wrap: wrap;
 		align-items: center;
-		gap: 7px;
+		gap: 8px;
+		margin-bottom: 4px;
 	}
 
 	.hero-actions .button {
-		min-height: 38px;
-		padding: 8px 10px;
-		font-size: 12px;
+		flex: 1 1 auto;
+		min-height: 42px;
+		padding: 10px 14px;
+		font-size: 13px;
+		justify-content: center;
 	}
 
-	.hero-art {
-		width: 100%;
-		height: min(65vh, 420px);
-		min-height: 360px;
-		align-self: center;
+	.social-links-desktop {
+		display: none !important;
 	}
 
-	.role-marquee {
-		padding-block: 9px;
-		max-width: 100%;
-	}
-
-	.profile-photo {
-		left: 0;
-		width: 100%;
-		height: 100%;
-		top: 10px;
-	}
-
-	.eyebrow {
-		margin-bottom: 12px;
-		padding: 6px 10px;
-		font-size: 10px;
-	}
-
-	.social-links {
-		gap: 7px;
-		margin-top: 16px;
+	.social-links-mobile {
+		order: 8;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 8px;
+		margin-top: 14px;
+		margin-bottom: 6px;
 	}
 
 	.social-link {
-		width: 34px;
-		height: 34px;
+		width: 36px;
+		height: 36px;
 	}
 
 	.social-link svg {
-		width: 17px;
-		height: 17px;
+		width: 18px;
+		height: 18px;
 	}
 
 	.content-section {
@@ -1260,65 +1318,58 @@ h3 {
 	}
 
 	.hero {
-		grid-template-columns: minmax(0, 1fr);
-		gap: 0;
-		padding-top: 60px;
-		padding-bottom: 8px;
+		padding-top: 64px;
+		padding-bottom: 16px;
 	}
 
 	.eyebrow {
-		margin-bottom: 18px;
-		padding: 7px 12px;
+		margin-bottom: 10px;
+		padding: 5px 10px;
 		font-size: 10px;
 	}
 
 	h1 {
-		margin-bottom: 12px;
-		font-size: clamp(27px, 7vw, 33px);
-		letter-spacing: -1.2px;
+		margin-bottom: 10px;
+		font-size: clamp(24px, 6.5vw, 30px);
+		letter-spacing: -1px;
+	}
+
+	.hero-art {
+		width: min(100%, 260px);
+		height: clamp(230px, 60vw, 280px);
+		margin: 6px auto 12px auto;
+	}
+
+	.role-marquee {
+		margin: 4px 0 12px 0;
+		padding-block: 7px;
 	}
 
 	.hero-description {
-		margin-bottom: 14px;
-		font-size: 14px;
+		margin-bottom: 10px;
+		font-size: 13.5px;
 		line-height: 1.55;
 	}
 
 	.hero-actions {
-		flex-direction: row;
-		flex-wrap: wrap;
 		gap: 8px;
 	}
 
 	.button {
-		min-height: 38px;
-		padding: 8px 10px;
+		min-height: 40px;
+		padding: 9px 12px;
 		border-radius: 11px;
-		font-size: 12px;
+		font-size: 12.5px;
 	}
 
-	.social-links {
-		gap: 7px;
+	.social-links-mobile {
+		gap: 8px;
 		margin-top: 12px;
 	}
 
 	.social-link {
-		width: 32px;
-		height: 32px;
-	}
-
-	.hero-art {
-		width: min(100%, 300px);
-		height: clamp(155px, 46vw, 200px);
-		min-height: 0;
-		justify-self: center;
-		margin-top: 2px;
-	}
-
-	.role-marquee {
-		margin-top: 6px;
-		padding-block: 8px;
-		max-width: 100%;
+		width: 34px;
+		height: 34px;
 	}
 
 	.art-slash {
@@ -1351,15 +1402,21 @@ h3 {
 
 @media (max-width: 425px) {
 	.hero {
-		padding-top: 70px;
+		padding-top: 66px;
 	}
 
 	.eyebrow {
-		margin-bottom: 14px;
+		margin-bottom: 10px;
 	}
 
 	h1 {
-		font-size: clamp(25px, 6.5vw, 30px);
+		font-size: clamp(23px, 6.5vw, 28px);
+	}
+
+	.hero-art {
+		width: min(100%, 240px);
+		height: clamp(210px, 58vw, 260px);
+		margin: 4px auto 10px auto;
 	}
 
 	.hero-description {
@@ -1370,30 +1427,13 @@ h3 {
 		font-size: 12px;
 	}
 
-	.profile-photo {
-		width: 115%;
-		height: 115%;
-		left: -5%;
-	}
-
-	.social-links-desktop {
-		display: none;
-	}
-
-	.social-links-mobile {
-		display: flex;
-		grid-column: 1 / -1;
-		justify-self: center;
-		margin-top: 16px;
-		margin-bottom: 8px;
-	}
-
-	.hero-art {
-		margin-bottom: 8px;
+	.button {
+		font-size: 12px;
+		padding: 9px 10px;
 	}
 }
 
-@media (min-width: 426px) {
+@media (min-width: 769px) {
 	.social-links-mobile {
 		display: none;
 	}
@@ -1476,7 +1516,8 @@ h3 {
 
 @media (max-width: 767px) and (max-height: 680px) {
 	.hero {
-		padding-block: 6px;
+		padding-top: 64px;
+		padding-bottom: 12px;
 	}
 
 	.hero-art {
@@ -1500,7 +1541,8 @@ h3 {
 
 @media (max-width: 540px) and (max-height: 680px) {
 	.hero {
-		padding-block: 4px 12px;
+		padding-top: 60px;
+		padding-bottom: 10px;
 	}
 
 	.hero-art {
