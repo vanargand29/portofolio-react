@@ -161,6 +161,7 @@ const projectData = {
     tech: ['React', 'Responsive UI', 'HTML/CSS/JS'],
     image: '/img/porto(tampilan).webp',
     github: 'https://github.com/vanargand29/Portofolio',
+    link: 'https://mocharisandijayanto.my.id',
   },
   backendApi: {
     number: '#04',
@@ -215,6 +216,7 @@ const projects = [
     tech: ['React', 'Responsive UI', 'HTML/CSS/JS'],
     image: '/img/porto(tampilan).webp',
     github: 'https://github.com/vanargand29/Portofolio',
+    link: 'https://mocharisandijayanto.my.id',
   },
   {
     id: 'backendApi',
@@ -244,56 +246,133 @@ export default function ProjectsSection({ onNavigate }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [modal, setModal] = useState(null);
   const [imageModal, setImageModal] = useState(false);
-  const [alertModal, setAlertModal] = useState(false);
+  const [infoModal, setInfoModal] = useState(null);
 
-  // Fetch live projects from Cloudflare Worker REST API
+  const getGithubUrl = (item) => {
+    if (!item) return null;
+    const gh = item.github ? String(item.github).trim() : '';
+    // Must be a real GitHub repository URL containing github.com
+    if (gh && gh !== '#' && (gh.includes('github.com') || gh.startsWith('https://github.com'))) {
+      return gh;
+    }
+    return null;
+  };
+
+  const getPreviewUrl = (item) => {
+    if (!item) return null;
+    // 1. Direct explicit link / preview / demo / url field
+    const direct = item.link || item.previewUrl || item.demoUrl || item.demo || item.url;
+    if (direct && direct !== '#' && String(direct).trim() !== '') {
+      const s = String(direct).trim();
+      return s.startsWith('http://') || s.startsWith('https://') ? s : `https://${s}`;
+    }
+
+    // 2. If github field was set to a non-github web/demo URL (e.g. https://rakitin-studio.com)
+    const gh = item.github ? String(item.github).trim() : '';
+    if (gh && gh !== '#' && (gh.startsWith('http://') || gh.startsWith('https://')) && !gh.includes('github.com')) {
+      return gh;
+    }
+
+    // 3. If urlMock is a valid custom domain (e.g. rakitin-studio.com, mocharisandijayanto.my.id)
+    const mock = item.urlMock ? String(item.urlMock).trim() : '';
+    if (mock && !mock.endsWith('.app') && !mock.endsWith('.health.id') && (mock.startsWith('http') || mock.includes('.'))) {
+      return mock.startsWith('http') ? mock : `https://${mock}`;
+    }
+
+    return null;
+  };
+
+  const handleGithubClick = (e, item) => {
+    e?.stopPropagation?.();
+    const ghUrl = getGithubUrl(item);
+    if (ghUrl) {
+      window.open(ghUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      setInfoModal({
+        type: 'private',
+        title: 'GitHub Private',
+        message: 'Repositori GitHub untuk proyek ini berstatus private (proyek internal/klien). Anda dapat mendiskusikannya langsung dengan pengembang.',
+      });
+    }
+  };
+
+  const handlePreviewClick = (e, item) => {
+    e?.stopPropagation?.();
+    const previewUrl = getPreviewUrl(item);
+    if (previewUrl) {
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      setInfoModal({
+        type: 'coming-soon',
+        title: 'Coming Soon',
+        message: 'Live preview atau demonstrasi interaktif untuk proyek ini sedang dalam tahap persiapan. Segera hadir!',
+      });
+    }
+  };
+
+  // Fetch live projects from Cloudflare Worker REST API during idle time
   useEffect(() => {
     let active = true;
-    fetchProjects().then((items) => {
-      if (!active || !items || !Array.isArray(items) || items.length === 0) return;
+    let timerId = null;
 
-      const detailsMap = {};
-      const mappedList = items.map((p, idx) => {
-        const resolvedImg = resolveImageUrl(p.image);
-        const techArr = Array.isArray(p.tech)
-          ? p.tech
-          : p.tech
-          ? String(p.tech).split(',').map((s) => s.trim())
-          : [];
+    const loadData = () => {
+      fetchProjects().then((items) => {
+        if (!active || !items || !Array.isArray(items) || items.length === 0) return;
 
-        const cardItem = {
-          id: p.id || `proj-${idx + 1}`,
-          number: p.number || `#${String(idx + 1).padStart(2, '0')}`,
-          category: p.category || 'Website',
-          headerCategory: p.headerCategory || (p.category || 'PROJECT').toUpperCase(),
-          headerType: p.headerType || 'WEB APPLICATION',
-          urlMock: p.urlMock || '',
-          title: p.title || 'Untitled Project',
-          subtitle: p.subtitle || '',
-          desc: p.description || p.desc || '',
-          tech: techArr,
-          image: resolvedImg,
-          github: p.github || '#',
-          isPrivate: p.isPrivate,
-        };
+        const detailsMap = {};
+        const mappedList = items.map((p, idx) => {
+          const resolvedImg = resolveImageUrl(p.image);
+          const techArr = Array.isArray(p.tech)
+            ? p.tech
+            : p.tech
+            ? String(p.tech).split(',').map((s) => s.trim())
+            : [];
 
-        detailsMap[cardItem.id] = {
-          ...p,
-          ...cardItem,
-          description: p.description || cardItem.desc,
-          features: Array.isArray(p.features) ? p.features : [],
-        };
+          const cardItem = {
+            id: p.id || `proj-${idx + 1}`,
+            number: p.number || `#${String(idx + 1).padStart(2, '0')}`,
+            category: p.category || 'Website',
+            headerCategory: p.headerCategory || (p.category || 'PROJECT').toUpperCase(),
+            headerType: p.headerType || 'WEB APPLICATION',
+            urlMock: p.urlMock || '',
+            title: p.title || 'Untitled Project',
+            subtitle: p.subtitle || '',
+            desc: p.description || p.desc || '',
+            tech: techArr,
+            image: resolvedImg,
+            github: p.github || '',
+            link: p.link || p.previewUrl || p.demoUrl || p.url || '',
+            isPrivate: p.isPrivate,
+          };
 
-        return cardItem;
+          detailsMap[cardItem.id] = {
+            ...p,
+            ...cardItem,
+            description: p.description || cardItem.desc,
+            features: Array.isArray(p.features) ? p.features : [],
+          };
+
+          return cardItem;
+        });
+
+        setProjectList(mappedList);
+        setProjectDetails((prev) => ({ ...prev, ...detailsMap }));
       });
-
-      setProjectList(mappedList);
-      setProjectDetails((prev) => ({ ...prev, ...detailsMap }));
-    });
-
-    return () => {
-      active = false;
     };
+
+    if ('requestIdleCallback' in window) {
+      const handle = window.requestIdleCallback(loadData, { timeout: 2500 });
+      return () => {
+        active = false;
+        window.cancelIdleCallback(handle);
+      };
+    } else {
+      timerId = setTimeout(loadData, 2000);
+      return () => {
+        active = false;
+        clearTimeout(timerId);
+      };
+    }
   }, []);
 
   function openModal(id) {
@@ -304,12 +383,12 @@ export default function ProjectsSection({ onNavigate }) {
   function closeModal() {
     setModal(null);
     setImageModal(false);
-    setAlertModal(false);
+    setInfoModal(null);
   }
 
   // Manage modal-open class on body to lock background scrolling
   useEffect(() => {
-    const isAnyModalOpen = Boolean(modal || imageModal || alertModal);
+    const isAnyModalOpen = Boolean(modal || imageModal || infoModal);
     if (isAnyModalOpen) {
       document.body.classList.add('modal-open');
     } else {
@@ -318,14 +397,14 @@ export default function ProjectsSection({ onNavigate }) {
     return () => {
       document.body.classList.remove('modal-open');
     };
-  }, [modal, imageModal, alertModal]);
+  }, [modal, imageModal, infoModal]);
 
   // Handle escape key to close modals
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        if (alertModal) {
-          setAlertModal(false);
+        if (infoModal) {
+          setInfoModal(null);
         } else if (imageModal) {
           setImageModal(false);
         } else if (modal) {
@@ -335,7 +414,7 @@ export default function ProjectsSection({ onNavigate }) {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [alertModal, imageModal, modal]);
+  }, [infoModal, imageModal, modal]);
 
   function handleContactClick(e) {
     e.preventDefault();
@@ -415,6 +494,8 @@ export default function ProjectsSection({ onNavigate }) {
                   className="project-thumb-img"
                   loading="lazy"
                   decoding="async"
+                  width="600"
+                  height="330"
                 />
                 <div className="project-thumb-overlay">
                   <span className="project-quick-view">
@@ -479,24 +560,15 @@ export default function ProjectsSection({ onNavigate }) {
                   </svg>
                 </div>
 
-                {p.github && (
-                  <button
-                    type="button"
-                    className="project-github-btn"
-                    aria-label="GitHub Repository"
-                    title={p.github === '#' ? 'Source code private' : 'Buka GitHub'}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (p.github === '#') {
-                        setAlertModal(true);
-                      } else {
-                        window.open(p.github, '_blank', 'noopener,noreferrer');
-                      }
-                    }}
-                  >
-                    <GitHubIcon />
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="project-github-btn"
+                  aria-label="GitHub Repository"
+                  title={getGithubUrl(p) ? 'Buka GitHub' : 'GitHub Private'}
+                  onClick={(e) => handleGithubClick(e, p)}
+                >
+                  <GitHubIcon />
+                </button>
               </div>
             </article>
           ))}
@@ -682,6 +754,37 @@ export default function ProjectsSection({ onNavigate }) {
                   <div className="modal-actions-box">
                     <button
                       type="button"
+                      className="modal-action-btn preview"
+                      onClick={(e) => handlePreviewClick(e, modal)}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                      <span>Lihat Hasil (Preview)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="modal-action-btn secondary"
+                      onClick={(e) => handleGithubClick(e, modal)}
+                    >
+                      <GitHubIcon />
+                      <span>Lihat di GitHub</span>
+                    </button>
+
+                    <button
+                      type="button"
                       className="modal-action-btn primary"
                       onClick={handleContactClick}
                     >
@@ -690,22 +793,6 @@ export default function ProjectsSection({ onNavigate }) {
                       </svg>
                       <span>Diskusikan Proyek Ini</span>
                     </button>
-
-                    <a
-                      className="modal-action-btn secondary"
-                      href={modal.github}
-                      target={modal.github !== '#' ? '_blank' : undefined}
-                      rel="noopener noreferrer"
-                      onClick={(e) => {
-                        if (modal.github === '#') {
-                          e.preventDefault();
-                          setAlertModal(true);
-                        }
-                      }}
-                    >
-                      <GitHubIcon />
-                      <span>{modal.github !== '#' ? 'Lihat di GitHub' : 'Private Source'}</span>
-                    </a>
                   </div>
                 </div>
               </div>
@@ -756,36 +843,52 @@ export default function ProjectsSection({ onNavigate }) {
       )}
 
       {/* ================================================================= */}
-      {/* 3. STANDALONE PRIVATE REPO ALERT POPUP                            */}
+      {/* 3. STANDALONE INFO POPUP (GITHUB PRIVATE & COMING SOON)           */}
       {/* ================================================================= */}
-      {alertModal && (
+      {infoModal && (
         <div className="alert-modal" role="dialog" aria-modal="true">
           <div
             className="alert-modal-overlay"
-            onClick={() => setAlertModal(false)}
+            onClick={() => setInfoModal(null)}
           />
-          <div className="alert-modal-content">
-            <div className="alert-icon-wrap">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#ff2028"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
+          <div className={`alert-modal-content ${infoModal.type}`}>
+            <div className={`alert-icon-wrap ${infoModal.type}`}>
+              {infoModal.type === 'coming-soon' ? (
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#38bdf8"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              ) : (
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#ff2028"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              )}
             </div>
-            <h3>Source Code Bersifat Private</h3>
-            <p>Repositori ini berstatus private untuk keperluan klien atau kepemilikan khusus. Anda dapat mendiskusikannya langsung dengan pengembang.</p>
+            <h3>{infoModal.title}</h3>
+            <p>{infoModal.message}</p>
             <button
               type="button"
-              className="alert-modal-close"
-              onClick={() => setAlertModal(false)}
+              className={`alert-modal-close ${infoModal.type}`}
+              onClick={() => setInfoModal(null)}
             >
               Mengerti
             </button>

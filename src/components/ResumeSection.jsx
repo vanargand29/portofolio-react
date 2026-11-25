@@ -450,58 +450,72 @@ export default function ResumeSection() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Fetch live resume (experience, education, certifications) from Cloudflare Worker API
+  // Fetch live resume (experience, education, certifications) from Cloudflare Worker API during idle time
   useEffect(() => {
     let active = true;
-    fetchResume().then((data) => {
-      if (!active || !data) return;
+    let timerId = null;
 
-      if (Array.isArray(data.certifications) && data.certifications.length > 0) {
-        setCertList(data.certifications);
-      }
-      if (Array.isArray(data.experience) && data.experience.length > 0) {
-        setExpList(
-          data.experience.map((e) => ({
-            id: e.id,
-            date: e.date,
-            title: e.title,
-            org: e.organization || e.org,
-            desc: e.description || e.desc,
-            tags: Array.isArray(e.tags)
-              ? e.tags
-              : e.tags
-              ? String(e.tags).split(',').map((s) => s.trim())
-              : [],
-            details: e.details,
-            certHref: e.certHref,
-            iconType: e.iconType || 'code',
-          }))
-        );
-      }
-      if (Array.isArray(data.education) && data.education.length > 0) {
-        setEduList(
-          data.education.map((ed) => ({
-            id: ed.id,
-            date: ed.date,
-            title: ed.title,
-            org: ed.major || ed.institution || ed.org,
-            desc: ed.description || ed.desc,
-            tags: Array.isArray(ed.tags)
-              ? ed.tags
-              : ed.tags
-              ? String(ed.tags).split(',').map((s) => s.trim())
-              : [],
-            details: ed.details,
-            gpa: ed.gpa,
-            iconType: ed.iconType || 'academic',
-          }))
-        );
-      }
-    });
+    const loadData = () => {
+      fetchResume().then((data) => {
+        if (!active || !data) return;
 
-    return () => {
-      active = false;
+        if (Array.isArray(data.certifications) && data.certifications.length > 0) {
+          setCertList(data.certifications);
+        }
+        if (Array.isArray(data.experience) && data.experience.length > 0) {
+          setExpList(
+            data.experience.map((e) => ({
+              id: e.id,
+              date: e.date,
+              title: e.title,
+              org: e.organization || e.org,
+              desc: e.description || e.desc,
+              tags: Array.isArray(e.tags)
+                ? e.tags
+                : e.tags
+                ? String(e.tags).split(',').map((s) => s.trim())
+                : [],
+              details: e.details,
+              certHref: e.certHref,
+              iconType: e.iconType || 'code',
+            }))
+          );
+        }
+        if (Array.isArray(data.education) && data.education.length > 0) {
+          setEduList(
+            data.education.map((ed) => ({
+              id: ed.id,
+              date: ed.date,
+              title: ed.title,
+              org: ed.major || ed.institution || ed.org,
+              desc: ed.description || ed.desc,
+              tags: Array.isArray(ed.tags)
+                ? ed.tags
+                : ed.tags
+                ? String(ed.tags).split(',').map((s) => s.trim())
+                : [],
+              details: ed.details,
+              gpa: ed.gpa,
+              iconType: ed.iconType || 'academic',
+            }))
+          );
+        }
+      });
     };
+
+    if ('requestIdleCallback' in window) {
+      const handle = window.requestIdleCallback(loadData, { timeout: 3000 });
+      return () => {
+        active = false;
+        window.cancelIdleCallback(handle);
+      };
+    } else {
+      timerId = setTimeout(loadData, 2000);
+      return () => {
+        active = false;
+        clearTimeout(timerId);
+      };
+    }
   }, []);
 
   // Close dropdown when clicking outside

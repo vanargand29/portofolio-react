@@ -18,19 +18,27 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('home');
   const slideRafRef = useRef(0);
   const wheelLockedRef = useRef(false);
+  const isUpdatingNavRef = useRef(false);
 
   const updateActiveNav = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const activeIndex = Math.min(
-      Math.round(track.scrollLeft / track.clientWidth),
-      navSections.length - 1
-    );
-    setActiveSection(navSections[activeIndex]);
+    if (isUpdatingNavRef.current) return;
+    isUpdatingNavRef.current = true;
 
-    const panels = track.querySelectorAll('.horizontal-panel');
-    panels.forEach((p, idx) => {
-      p.classList.toggle('is-active', idx === activeIndex);
+    window.requestAnimationFrame(() => {
+      isUpdatingNavRef.current = false;
+      const track = trackRef.current;
+      if (!track) return;
+      const clientWidth = track.clientWidth || window.innerWidth;
+      const activeIndex = Math.min(
+        Math.max(0, Math.round(track.scrollLeft / clientWidth)),
+        navSections.length - 1
+      );
+      setActiveSection(navSections[activeIndex]);
+
+      const panels = track.querySelectorAll('.horizontal-panel');
+      panels.forEach((p, idx) => {
+        p.classList.toggle('is-active', idx === activeIndex);
+      });
     });
   }, []);
 
