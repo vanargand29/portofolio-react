@@ -189,6 +189,7 @@ const projectData = {
 const projects = [
   {
     id: 'jstore',
+    number: '#01',
     category: 'Website',
     title: 'J-Store',
     subtitle: 'Game Currency Store Platform',
@@ -199,6 +200,7 @@ const projects = [
   },
   {
     id: 'tuberculosis',
+    number: '#02',
     category: 'Machine Learning',
     title: 'TB Expert System',
     subtitle: 'AI-Powered Disease Screening',
@@ -209,6 +211,7 @@ const projects = [
   },
   {
     id: 'portfolio',
+    number: '#03',
     category: 'Website',
     title: 'Personal Portfolio',
     subtitle: 'Modern Interactive Showcase',
@@ -220,6 +223,7 @@ const projects = [
   },
   {
     id: 'backendApi',
+    number: '#04',
     category: 'Backend',
     title: 'Backend API & Admin',
     subtitle: 'Portfolio Management System',
@@ -229,6 +233,21 @@ const projects = [
     github: '#',
   },
 ];
+
+function parseProjectNumber(num) {
+  if (num === null || num === undefined) return 9999;
+  const matches = String(num).match(/\d+/);
+  return matches ? parseInt(matches[0], 10) : 9999;
+}
+
+function compareProjectsByNumber(a, b) {
+  const numA = parseProjectNumber(a.number);
+  const numB = parseProjectNumber(b.number);
+  if (numA !== numB) {
+    return numA - numB;
+  }
+  return (a.title || '').localeCompare(b.title || '');
+}
 
 const projectCategories = [
   { value: 'all', label: 'Semua' },
@@ -241,7 +260,7 @@ const projectCategories = [
 ];
 
 export default function ProjectsSection({ onNavigate }) {
-  const [projectList, setProjectList] = useState(projects);
+  const [projectList, setProjectList] = useState(() => [...projects].sort(compareProjectsByNumber));
   const [projectDetails, setProjectDetails] = useState(projectData);
   const [activeCategory, setActiveCategory] = useState('all');
   const [modal, setModal] = useState(null);
@@ -355,6 +374,8 @@ export default function ProjectsSection({ onNavigate }) {
           return cardItem;
         });
 
+        mappedList.sort(compareProjectsByNumber);
+
         setProjectList(mappedList);
         setProjectDetails((prev) => ({ ...prev, ...detailsMap }));
       });
@@ -424,12 +445,13 @@ export default function ProjectsSection({ onNavigate }) {
     }, 250);
   }
 
-  const filteredProjects =
+  const filteredProjects = (
     activeCategory === 'all'
       ? projectList
       : projectList.filter(
           (p) => (p.category || '').toLowerCase() === activeCategory.toLowerCase()
-        );
+        )
+  ).slice().sort(compareProjectsByNumber);
 
   return (
     <section
@@ -516,7 +538,7 @@ export default function ProjectsSection({ onNavigate }) {
                   </span>
                 </div>
                 <div className="project-badge-bar">
-                  <span className="project-number-tag">#{String(i + 1).padStart(2, '0')}</span>
+                  <span className="project-number-tag">{p.number || `#${String(i + 1).padStart(2, '0')}`}</span>
                   <span className="project-category-tag">{p.category}</span>
                 </div>
               </div>
