@@ -18,8 +18,8 @@ export function resolveImageUrl(url) {
   let resolved = String(url).trim();
 
   // Prefer modern WebP format for local portfolio images
-  if (resolved.startsWith('/img/') && resolved.endsWith('.png')) {
-    resolved = resolved.replace(/\.png$/i, '.webp');
+  if (resolved.startsWith('/img/')) {
+    resolved = resolved.replace(/\.(png|jpe?g)$/i, '.webp');
   }
 
   if (resolved.startsWith('http://') || resolved.startsWith('https://')) {

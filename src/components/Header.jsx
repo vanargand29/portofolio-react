@@ -16,10 +16,22 @@ export default function Header({ activeSection, onNavigate }) {
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const id = setInterval(() => {
-      setActiveRole((r) => (r + 1) % roles.length);
-    }, 3500);
-    return () => clearInterval(id);
+    let id = null;
+    const tick = () => setActiveRole((r) => (r + 1) % roles.length);
+    const onVisibility = () => {
+      if (document.hidden) {
+        clearInterval(id);
+        id = null;
+      } else if (id === null) {
+        id = setInterval(tick, 3500);
+      }
+    };
+    onVisibility();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, []);
 
   function handleNav(id) {

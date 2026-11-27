@@ -81,7 +81,67 @@ export default function AboutSection() {
           <path d="M17 19h4" />
         </svg>
       ),
+    },    {
+      title: 'Claude Code',
+      category: 'AI Coding Agent',
+      color: '#cc785c',
+      desc: 'Agentic coding CLI — build, refactor, and ship straight from the terminal.',
+      icon: (
+        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+          <path d="M12 3v3.6M12 17.4V21M3 12h3.6M17.4 12H21M5.6 5.6l2.6 2.6M15.8 15.8l2.6 2.6M18.4 5.6l-2.6 2.6M8.2 15.8l-2.6 2.6"
+                stroke="#cc785c" strokeWidth="1.7" strokeLinecap="round" />
+        </svg>
+      ),
     },
+    {
+      title: 'Codex',
+      category: 'Agentic Coding',
+      color: '#10a37f',
+      desc: 'OpenAI agentic coding — async task runs and autonomous repo work.',
+      icon: (
+        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+          <path d="M12 2.6 20.4 7.1v9.8L12 21.4 3.6 16.9V7.1z" fill="#10a37f" />
+          <path d="M12 6.9 15.2 8.3v6.4L12 17.1 8.8 14.7V8.3z" fill="none" stroke="#0b1a14" strokeWidth="1" opacity="0.45" />
+        </svg>
+      ),
+    },
+    {
+      title: 'Antigravity',
+      category: 'AI Dev Environment',
+      color: '#14b8a6',
+      desc: 'AI-native dev tooling tuned for agentic, parallel workflows.',
+      icon: (
+        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+          <circle cx="12" cy="12" r="1.7" fill="#14b8a6" />
+          <ellipse cx="12" cy="12" rx="8.3" ry="3.3" fill="none" stroke="#14b8a6" strokeWidth="1.7" transform="rotate(-25 12 12)" />
+        </svg>
+      ),
+    },
+    {
+      title: 'DeepSeek',
+      category: 'Open-Weight LLM',
+      color: '#4d7cff',
+      desc: 'Open-weight model family — local or API reasoning and code generation.',
+      icon: (
+        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+          <path d="M2.6 16.2c2.5 0 4-7.2 6.8-7.2s4.3 7.2 6.8 7.2" fill="none" stroke="#4d7cff" strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M2.6 9.9c2.5 0 4-7.2 6.8-7.2s4.3 7.2 6.8 7.2" fill="none" stroke="#4d7cff" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      title: 'GitHub Copilot',
+      category: 'IDE Assistant',
+      color: '#8957e5',
+      desc: 'AI pair-programmer — inline completion, chat and agent mode in the IDE.',
+      icon: (
+        <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+          <rect x="3" y="2.6" width="18" height="18.8" rx="3" fill="none" stroke="#8957e5" strokeWidth="1.7" />
+          <path d="M7.2 10.6 10.6 14l-3.4 3.4M12.8 15.4h3.8" fill="none" stroke="#8957e5" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+
   ];
 
   const techStack = [
